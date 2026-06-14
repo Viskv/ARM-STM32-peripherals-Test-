@@ -7,37 +7,107 @@
  *          conversion for the application payload.
  */
 
-// #include "udp_client.h"
-// #include <stdio.h>
-// #include <unistd.h>
-// #include <sys/socket.h>
-// #include <netinet/in.h>
-// #include <arpa/inet.h>
-// #include <sys/time.h>
 
-// static int    s_sock      = -1;
-// static struct sockaddr_in s_dest_addr = {0};
+#include "udp_client.h"
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <errno.h>
+#include <string.h>
+#include <string.h>
 
-// int udp_init(const char *ip, uint16_t port)
-// {
-//     s_sock = socket(AF_INET, SOCK_DGRAM, 0);
-//     if(s_sock < 0)
-//     {
-//         perror("[UDP] socket");
-//         return -1;
-//     }
+static SOCKET client_socket = -1; // Global socket handle for UDP communication with the UUT
+static struct sockaddr_in target_addr; // Global structure to hold the target UUT's IP address and port for outgoing UDP packets
 
-//     memset(&s_dest_addr, 0, sizeof(s_dest_addr));
-//     s_dest_addr.sin_family = AF_INET;
-//     s_dest_addr.sin_port   = htons(port);
+int udp_init(const char *ip, uint16_t port) 
+{
+    if (client_socket >= 0)  // If a socket is already open, close it before creating a new one to prevent resource leaks and ensure a clean state for the new connection
+    {
+        close(client_socket);
+        client_socket = -1;
+    }
 
-//     if(inet_pton(AF_INET, ip, &s_dest_addr.sin_addr) <= 0)
-//     {
-//         fprintf(stderr, "[UDP] Invalid IP address: %s\n", ip);
-//         close(s_sock);
-//         s_sock = -1;
-//         return -1;
-//     }
+    client_socket = socket(AF_INET, SOCK_DGRAM, 0); // Create a new UDP socket for communication with the UUT.
+    if (client_socket < 0)
+    {
+        return -1;
+    }
 
-//     return 0;
-// }
+    memset(&target_addr, 0, sizeof(target_addr)); // Zero out the target address structure to ensure all fields are initialized to a known state before setting specific values for the IP address and port of the UUT.
+    target_addr.sin_family = AF_INET; // Set the address family to AF_INET for IPv4 communication.
+    target_addr.sin_port = htons(port); // Convert the provided port number from host byte order to network byte order using htons() to ensure correct interpretation by the network stack when sending UDP packets to the UUT.
+    
+    // Convert the provided IP address string to binary form and store it in the target address structure.
+    if (inet_pton(AF_INET, ip, &target_addr.sin_addr) != 1) 
+    {
+        close(client_socket);
+        client_socket = INVALID_SOCKET;
+        return -1;
+    }
+
+    return 0;
+}
+
+int udp_sendCmd(const TestCommand_t *cmd) 
+{
+    if (client_socket < 0 || cmd == NULL) // Vlidate that socket was created or if thair is a cmd at all
+    {
+        return -1;
+    }
+
+    // Dynamic stream calculation based on raw network data layout:
+    // PROTOCOL_CMD_LEN (7 Bytes fixed header block) + length of pattern buffer data
+    int packet_size = PROTOCOL_CMD_LEN + cmd->pattern_len;
+
+    int bytes_sent = sendto(client_socket, (const char*)cmd, packet_size, 0, (struct sockaddr*)&target_addr, sizeof(target_addr));                     
+    if (bytes_sent < 0)  // if send is failed
+    {
+        return -1;
+    }
+    return 0;
+}
+
+int udp_recvRes(TestResult_t *res, int timeout_sec) 
+{
+    if (client_socket < 0 || res == NULL)  // Vlidate that socket was created or if thair is a res at all
+    {
+        return -1;
+    }
+
+    int timeout_ms = timeout_sec * 1000;
+    // Set the receive timeout for the socket to prevent blocking indefinitely while waiting for a response from the UUT
+    if (setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout_ms, sizeof(timeout_ms)) == SOCKET_ERROR) 
+    {
+        return -1;
+    }
+
+    struct sockaddr_in from_addr; // Structure to hold the address of the sender (UUT) when receiving a response
+    int from_len = sizeof(from_addr); // Variable to hold the address of the sender (UUT) and its length
+
+    // Expecting incoming buffer payload equivalent to PROTOCOL_RESULT_LEN (5 Bytes)
+    int bytes_rx = recvfrom(client_socket, (char*)res, sizeof(TestResult_t), 0,(struct sockaddr*)&from_addr, &from_len);
+    if (bytes_rx < 0) 
+    {
+        return -1; 
+    }
+
+    return 0;
+}
+
+int udp_close(void) // Closes the UDP socket and cleans up Winsock resources
+{
+    int error_occurred = 0;
+
+    if (client_socket < 0)
+    {
+        if (close(client_socket) < 0) 
+        {
+            error_occurred = -1;
+        }
+        client_socket = -1;
+    }
+
+    return error_occurred;
+}

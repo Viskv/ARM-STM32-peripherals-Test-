@@ -1,13 +1,12 @@
 /*
- * @file protocol.h
+ * @file 		protocol.h
  * @brif
+ * 			Command frame (PC → UUT):
+ *   		[test_id : 4 B][peripheral : 1 B][iterations : 1 B]
+ *   		[pattern_len : 1 B][pattern : pattern_len B]
  *
- * Command frame (PC → UUT):
- *   [test_id : 4 B][peripheral : 1 B][iterations : 1 B]
- *   [pattern_len : 1 B][pattern : pattern_len B]
- *
- * Result frame (UUT → PC):
- *   [test_id : 4 B][result : 1 B]
+ * 			Result frame (UUT → PC):
+ *   		[test_id : 4 B][result : 1 B]
  */
 
 #ifndef PROTOCOL_H_

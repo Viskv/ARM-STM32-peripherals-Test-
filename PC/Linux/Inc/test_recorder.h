@@ -14,27 +14,10 @@
 #ifndef TEST_RECORDER_H
 #define TEST_RECORDER_H
 
-#include <stdint.h>
+#include "protocol.h"
 
-#define RECORDED_FILE_NAME "test_records"
-#define TEST_ID_FILE_NAME  "test_id"
+void recorder_logToConsole(const TestCommand_t *cmd, const TestResult_t *res, int transport_status);
 
-typedef struct
-{
-    uint32_t test_id;
-    char     timestamp[32];   // "YYYY-MM-DD HH:MM:SS"
-    double   duration_sec;
-    uint8_t  peripheral;
-    uint8_t  iterations;
-    uint8_t  result;
-} TestRecord_t;
-
-void print_by_id(uint32_t test_id); // Print the records matching the given Test-ID
-
-void print_all(); // Print all records in CSV
-
-int save_record(const TestRecord_t *rec); // Append one record to CSV file
-
-const char get_peripheral_name(uint8_t peripheral);
+void recorder_logToFile(const char *filename, const TestCommand_t *cmd, const TestResult_t *res, int transport_status);
 
 #endif // TEST_RECORDER_H
