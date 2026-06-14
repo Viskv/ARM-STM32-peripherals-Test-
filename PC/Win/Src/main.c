@@ -9,6 +9,12 @@
 #define TARGET_UUT_IP   "192.168.1.200"
 #define TARGET_UUT_PORT 7000
 
+// Helper to validate peripheral ID
+int is_valid_peripheral(uint8_t p) 
+{
+    return (p == 0x01 || p == 0x02 || p == 0x04 || p == 0x08 || p == 0x10 || p == 0x20);
+}
+
 // Parse hex string (e.g., "DEADBEEF") into raw bytes
 size_t parse_hex_string(const char *hex_str, uint8_t *output, size_t max_len) 
 {
@@ -28,10 +34,10 @@ void print_menu(void)
     printf("      UUT COMMAND INTERFACE\n");
     printf("==================================\n");
     printf(" Target Peripherals:\n");
-    printf("  0x01 : Timer       0x08 : I2C\n");
-    printf("  0x02 : UART        0x10 : ADC\n");
-    printf("  0x04 : SPI         0x20 : OTA\n");
-    printf("   q/Q : quit\n");
+    printf("    1 : Timer        8 : I2C\n");
+    printf("    2 : UART        10 : ADC\n");
+    printf("    4 : SPI         20 : OTA\n");
+    printf("  q/Q : quit\n");
     printf("==================================\n");
 }
 
@@ -60,7 +66,7 @@ void run_test(uint8_t peripheral, uint8_t iterations, const char *pattern_hex)
     }
 
     recorder_logToConsole(&cmd, &response, transport_status);
-    recorder_logToFile("hil_test_results.csv", &cmd, &response, transport_status);
+    recorder_logToFile("test_results.csv", &cmd, &response, transport_status);
 }
 
 int main(int argc, char *argv[]) 
@@ -74,35 +80,59 @@ int main(int argc, char *argv[])
     
     srand((unsigned int)time(NULL));
 
-    // 1. Argument-based execution (Automated)
     if (argc == 4) 
     {
-        run_test((uint8_t)strtol(argv[1], NULL, 16), (uint8_t)atoi(argv[2]), argv[3]);
+        uint8_t p = (uint8_t)strtol(argv[1], NULL, 16);
+        uint8_t i = (uint8_t)atoi(argv[2]);
+        if (!is_valid_peripheral(p) || i == 0) {
+            printf("[-] Error: Invalid CLI arguments.\n");
+            return 1;
+        }
+        run_test(p, i, argv[3]);
     } 
-    // 2. Interactive execution (Manual)
     else 
     {
-        char buf[PROTOCOL_MAX_PATTERN_LEN]; // Buffer to hold user input for the pattern in hex format, with a size equal to the maximum allowed pattern length defined in the protocol.
+        char buf[PROTOCOL_MAX_PATTERN_LEN]; 
         while (1) 
         {
-            TestCommand_t cmd = {0};
             print_menu();
             
             // Peripheral
-            printf("Enter Peripheral ID in hex (or 'q'): ");
-            if (!fgets(buf, sizeof(buf), stdin) || buf[0] == 'q' || buf[0] == 'Q') break; 
-            cmd.peripheral = (uint8_t)strtol(buf, NULL, 16); // Convert user ID input from HEX to Uint8_t
+            printf("Enter Peripheral ID (or 'q'): ");
+            if (!fgets(buf, sizeof(buf), stdin) || buf[0] == 'q' || buf[0] == 'Q') 
+            {
+                break;
+            }
+
+            uint8_t peripheral = (uint8_t)strtol(buf, NULL, 16);
+            if (!is_valid_peripheral(peripheral)) 
+            { 
+                printf("[-] Invalid Peripheral ID.\n"); 
+                continue; 
+            }
 
             // Iterations
             printf("Enter iterations (decimal): ");
-            if (!fgets(buf, sizeof(buf), stdin)) break;
-            cmd.iterations = (uint8_t)strtol(buf, NULL, 10); // convert input string to uint8_t
+            if (!fgets(buf, sizeof(buf), stdin)) 
+            {
+                break;
+            }
+
+            int i = atoi(buf);
+            if (i <= 0) 
+            { 
+                printf("[-] Invalid iteration count.\n"); 
+                continue; 
+            }
 
             // Pattern
-            printf("Enter pattern in hex (e.g., 0xDEADBEEF): 0x");
-            if (!fgets(buf, sizeof(buf), stdin)) break; // read user input fo pattern in hex
+            printf("Enter pattern in hex (e.g., DEADBEEF): ");
+            if (!fgets(buf, sizeof(buf), stdin)) 
+            {
+                break;
+            }
             
-            run_test(cmd.peripheral, cmd.iterations, buf);
+            run_test(peripheral, (uint8_t)i, buf);
         }
     }
 
