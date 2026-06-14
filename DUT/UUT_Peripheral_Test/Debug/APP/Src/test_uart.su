@@ -1,0 +1,4 @@
+../APP/Src/test_uart.c:34:13:abort	8	static
+../APP/Src/test_uart.c:42:12:buffer_compare	32	static
+../APP/Src/test_uart.c:52:16:run_iteration	16	static
+../APP/Src/test_uart.c:119:9:Test_UART	24	static

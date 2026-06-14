@@ -1,0 +1,2 @@
+../APP/Src/ udp_handller.c:26:13:sendUdpResponse	32	static
+../APP/Src/ udp_handller.c:42:6:UdpServerTask	584	static

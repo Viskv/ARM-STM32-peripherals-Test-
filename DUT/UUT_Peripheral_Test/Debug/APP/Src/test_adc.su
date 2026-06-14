@@ -1,0 +1,2 @@
+../APP/Src/test_adc.c:23:16:run_iteration	24	static
+../APP/Src/test_adc.c:57:9:Test_ADC	24	static

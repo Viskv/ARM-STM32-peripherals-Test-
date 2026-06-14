@@ -1,0 +1,5 @@
+../APP/Src/tools.c:11:6:Tools_Init	8	static
+../APP/Src/tools.c:17:10:Tools_CRC32	32	static
+../APP/Src/tools.c:35:5:__io_putchar	16	static
+../APP/Src/tools.c:50:5:_write	24	static
+../APP/Src/tools.c:65:5:_read	32	static

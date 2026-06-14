@@ -1,0 +1,8 @@
+../APP/Src/app_callbackes.c:19:6:App_Callbacks_Init	1
+../APP/Src/app_callbackes.c:31:6:HAL_UART_RxCpltCallback	3
+../APP/Src/app_callbackes.c:40:6:HAL_UART_ErrorCallback	1
+../APP/Src/app_callbackes.c:47:6:HAL_SPI_TxRxCpltCallback	3
+../APP/Src/app_callbackes.c:56:6:HAL_SPI_ErrorCallback	1
+../APP/Src/app_callbackes.c:63:6:HAL_I2C_SlaveRxCpltCallback	2
+../APP/Src/app_callbackes.c:70:6:HAL_I2C_SlaveTxCpltCallback	2
+../APP/Src/app_callbackes.c:77:6:HAL_I2C_ErrorCallback	1

@@ -1,0 +1,4 @@
+../APP/Src/test_uart.c:34:13:abort	1
+../APP/Src/test_uart.c:42:12:buffer_compare	2
+../APP/Src/test_uart.c:52:16:run_iteration	8
+../APP/Src/test_uart.c:119:9:Test_UART	5

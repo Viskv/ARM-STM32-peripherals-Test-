@@ -1,0 +1,3 @@
+../APP/Src/test_spi.c:35:13:abort	1
+../APP/Src/test_spi.c:46:16:run_iteration	7
+../APP/Src/test_spi.c:101:9:Test_SPI	5
