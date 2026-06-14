@@ -26,12 +26,15 @@
                 //workaround printf fix for older gcc compilers on Windows:
                 //"-D __USE_MINGW_ANSI_STDIO",
 
-                "*.c",
-                "-o",
-                "${workspaceFolder}/program",
+                "Src/main.c",
+                "Src/test_recorder.c",
+                "Src/udp_client.c",
+                "-I", "Inc",
+                "-o", "${workspaceFolder}\\program.exe",
                 
                 //link math lib:
                 "-lm",
+                "-lws2_32",
 
             ],
             "options": {
