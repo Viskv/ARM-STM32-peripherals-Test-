@@ -7,6 +7,7 @@
 #include <time.h>
 
 #define TARGET_UUT_IP   "192.168.1.200"
+// #define TARGET_UUT_IP   "192.168.1.10"
 #define TARGET_UUT_PORT 7000
 
 // Helper to validate peripheral ID

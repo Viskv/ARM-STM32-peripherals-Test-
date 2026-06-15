@@ -18,7 +18,7 @@
 #include <string.h>
 #include <string.h>
 
-static SOCKET client_socket = -1; // Global socket handle for UDP communication with the UUT
+static int client_socket = -1; // Global socket handle for UDP communication with the UUT
 static struct sockaddr_in target_addr; // Global structure to hold the target UUT's IP address and port for outgoing UDP packets
 
 int udp_init(const char *ip, uint16_t port) 
@@ -43,7 +43,7 @@ int udp_init(const char *ip, uint16_t port)
     if (inet_pton(AF_INET, ip, &target_addr.sin_addr) != 1) 
     {
         close(client_socket);
-        client_socket = INVALID_SOCKET;
+        client_socket = -1;
         return -1;
     }
 
@@ -78,16 +78,16 @@ int udp_recvRes(TestResult_t *res, int timeout_sec)
 
     int timeout_ms = timeout_sec * 1000;
     // Set the receive timeout for the socket to prevent blocking indefinitely while waiting for a response from the UUT
-    if (setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout_ms, sizeof(timeout_ms)) == SOCKET_ERROR) 
+    if (setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout_ms, sizeof(timeout_ms)) < 0) 
     {
         return -1;
     }
 
     struct sockaddr_in from_addr; // Structure to hold the address of the sender (UUT) when receiving a response
-    int from_len = sizeof(from_addr); // Variable to hold the address of the sender (UUT) and its length
+    socklen_t from_len = sizeof(from_addr); // Variable to hold the address of the sender (UUT) and its length
 
     // Expecting incoming buffer payload equivalent to PROTOCOL_RESULT_LEN (5 Bytes)
-    int bytes_rx = recvfrom(client_socket, (char*)res, sizeof(TestResult_t), 0,(struct sockaddr*)&from_addr, &from_len);
+    ssize_t bytes_rx = recvfrom(client_socket, (char*)res, sizeof(TestResult_t), 0,(struct sockaddr*)&from_addr, &from_len);
     if (bytes_rx < 0) 
     {
         return -1; 

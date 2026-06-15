@@ -28,7 +28,7 @@
 
                 "Src/*.c",
                 "-I", "Inc",
-                "-o", "${workspaceFolder}\\program.exe",
+                "-o", "${workspaceFolder}/program",
                 
                 //link math lib:
                 "-lm",

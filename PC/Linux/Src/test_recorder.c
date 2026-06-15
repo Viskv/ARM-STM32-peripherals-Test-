@@ -64,11 +64,13 @@ void recorder_logToFile(const char *filename, const TestCommand_t *cmd, const Te
     }
 
     time_t now = time(NULL); // get now time
-    struct tm time_info; 
+    struct tm *time_info = localtime(&now);; 
     char time_str[26];
     
-    localtime_r(&now, &time_info);
-    strftime(time_str,sizeof(time_str),"%Y-%m-%d %H:%M:%S",&time_info); 
+    if (time_info != NULL)
+    {
+        strftime(time_str,sizeof(time_str),"%Y-%m-%d %H:%M:%S",time_info);
+    } 
     time_str[strcspn(time_str, "\r\n")] = 0; // Remove formatting newline character
 
     const char *status_str = "UNKNOWN_ERROR";
